@@ -34,28 +34,17 @@ This package tries to find the best recipes for you based on a recipe database. 
 # ╔═╡ 3ad1af72-7096-4106-a3c7-47326695e2cb
 md"""
 ## Checking The Ingredients
-If you want to optimize the fridge usage. It's best to know which ingredients are in the fridge. By checking all the ingredients and offering possible alternatives, it is easier for the algorithm to give better results.
+If you want to optimize fridge usage. It's best to know which ingredients are in the fridge. By checking all the ingredients and offering possible alternatives, it is easier for the algorithm to give better results. For instance, cheese may be replaced by swiss cheese.\
+\
+It takes two inputs:
+- The fridge list: A list containing the different foods in your fridge as a string.
+- The ingredient list: A list containing all the different ingredients that are used in the recipe database.
+
+After searching for the different ingredients, it outputs an adapted fridge list.
 """
 
 # ╔═╡ 8e58f807-1db9-495e-8679-430f953292ea
 function checkIngredients(fridgeList,ingredientList)
-"""
-    checkIngredients(fridgeList,ingredientList)
-
-This function checks if the foods in your fridge are also found in the ingredient overview 
-of the recipe database. If they are not found in the database, regex is used to find possible alternatives.
-For instance cheese may be replaced by swiss cheese.
-
-## Input:
-- fridgeList: A list containing the different foods in your fridge as a string.
-- ingredientList: A list containing all the different ingredients that are used in the recipe database.
-
-## Output:
-- fridgeList: The (adapted) given fridgeList
-
-"""
-
-
     print("Checking if the food in your fridge is found in our database.\n\n")
 
     # check if the ingredients in the fridge are found in the database
@@ -106,13 +95,10 @@ Of course, we want to be able to score how good our objective function will be. 
 
 # ╔═╡ c793a149-2cbe-462a-b69a-6ecab53320a6
 md"""
-``w_1``: $(@bind w_1 Slider(0:10))\
-``w_2``: $(@bind w_2 Slider(0:10))\
-``w_3``: $(@bind w_3 Slider(0:10))\
+``w_1``: $(@bind w_1 Slider(0:10, default=1, show_value=true))\
+``w_2``: $(@bind w_2 Slider(0:10, default=6, show_value=true))\
+``w_3``: $(@bind w_3 Slider(0:10, default=2, show_value=true))\
 """
-
-# ╔═╡ 52c497d7-36b9-4017-934a-1ea6190cbbb5
-md"``w_1``: $(w_1) ``w_2``: $(w_2) ``w_3``: $(w_3)"
 
 # ╔═╡ 1752889a-513a-4620-add4-a9ca7fa92c8e
 md"""
@@ -122,34 +108,95 @@ Let's now take a look at the different search algorithms that you can use in the
 
 # ╔═╡ a65c0925-7a67-4da3-9a6d-2ade8d3529e9
 md"""### Greedy Algorithm
-It ranks all recipes based on the previously discussed objective function.
+This algorithm works like the one seen in class. 
+It ranks all recipes based on the previously discussed objective function. Picks the best scoring recipe. Adapts the recipe options and picks the new best recipe.
+It keeps repeating this until the amount of chosen recipes is equal to `numRecipes` or if there are no recipes left to pick.\
+\
+As an input, it takes the earlier mentioned `fridgeList`, a dictionary containing all the recipes and their ingredients (`recipeDict`) and, the max number of recipes that a combination should have (`numRecipes`). \
+\
+After searching, it outputs the best-found combination.
 """
 
 # ╔═╡ 954fe2b3-171b-43ad-a1df-cbb3414988de
 md"""
 ### Simulated Annealing
 To improve our earlier result, we can use simulated annealing. The algorithm below is based on the one seen in class. The biggest difference is the fact that we also use a Tabu list to block recipes for a certain number of cycles.
+
+To start searching, it needs the earlier mentioned `fridgeList`, `recipeDict` and `numRecipes` but also the following things:
+- `initSolution`: The initial solution from which it should start looking.
+- `tabuList`: A list of recipes that should not be used in the found neighbour.
+- `randRecipe`: A Boolean `true` or `false` value. When `true`, random recipes are used to create the neighbour.
+
+After searching it also outputs the best-found combination of recipes.
+"""
+
+# ╔═╡ eee53924-fd20-44d8-a3eb-a2af9f9112b9
+md"""
+To optimize this searching method, there are a lot of parameters that can be tweaked.
+The following options are available:
+- `kT`: repetitions per temperature
+- `r`: cooling rate 
+- `Tmax`: maximal temperature to start
+- `Tmin`: minimal temperature to end
+- `tabuLength`: Number of cycles that recipe needs to be blocked
+
+You can experiment with them further on below!
 """
 
 # ╔═╡ 7315f676-0d0e-43ae-8231-b6274dc5c8de
 md"""
 ### Neighbours
-There are two types of neighbours to use. One is a random combination of recipes, the other is based on the Greedy Search algorithm.
+There are two types of neighbours to use in the module. One uses a random combination of recipes, the other is based on the Greedy Search algorithm. Both are implemented in the `Neighbour()` function.
 """
+
+# ╔═╡ 134a2dd7-69d2-449e-82ab-5bfff90ede1b
+md"""A neighbour is created by first removing a recipe from the current combination `curSolution`. Next, the Neighbour function looks for other recipes that are compatible with the other recipes that are in the current combination."""
 
 # ╔═╡ b6205bd3-41da-45e0-81f1-a480a3f0e737
 md"""
 ## Overview Function
-Finally we want to bring all the functions together in one.
+Finally, we want to bring all the functions together in one clean overview function.
+The only things that need to be provided are:
+- A list containing the different foods in your fridge as a string. `fridgeList`
+- A relative or absolute path to a .csv or .jld2 file containing the recipe database. `dataPath`
+
+Optionally you can also adapt the max amount of recipes in a combination (`numRecipes`) and wether or not random recipes should be used to create a neighbour (`randRecipe`).
+
 """
 
 # ╔═╡ 6af2a6dd-ba7e-470e-8915-12ae6eff8357
-md"## Example Time"
+md"""## Example Time
+To start of we'll need to get our hands on a recipe database. Don't fear if you don't have one laying around. By using the `scrapeRecipe()` function provided in this module, you can create a .csv file containing recipes from [the cosylab recipe database](https://cosylab.iiitd.edu.in/recipedb/).
 
-# ╔═╡ 2f8fdff5-0d3f-4167-b415-e7f5f85e006b
-md"""Download example recipe database: $(@bind downloadDB CheckBox())\
-\
-It is recommended to only use this once, otherwise you will have copies of some recipes in your database."""
+You just need to provide the following things:
+- a starting recipe number
+- a stopping recipe number
+- the path to where the .csv file should be saved (you can copy this from your file explorer)
+
+Next al that is left to do is to check the `Download database now` box. Since this will take a few minutes we provide you with a 🍪 and some ☕, enjoy! 
+"""
+
+# ╔═╡ 656f211d-d1e8-4325-a12b-b89eca0351da
+md"""
+#### recipe database selection menu
+Starting recipe number: $(@bind startNumber TextField(default="106541"))\
+Stopping recipe number: $(@bind endNumber TextField(default="106866"))\
+Filepath: $(@bind filePath TextField(default="../data/BelgianRecipeDB.csv"))\
+Download database now: $(@bind downloadDB CheckBox())
+
+It is recommended to only use this once. Otherwise, you will have copies of some recipes in your database. 
+"""
+
+# ╔═╡ bf2725c1-55e6-4c6a-9b83-53f5984cae75
+md"Next it is time to look at the things we have left in our kitchen:"
+
+# ╔═╡ fd02d76a-0ae6-4869-96bb-516c536fb91d
+fridgeList = ["chocolate", "potato", "salt", "cheese"]
+
+# ╔═╡ 34544e10-e4a1-4cfe-b0bc-43f8927bb19c
+md"""
+Now that we have a small database and the content of our fridge, we can start looking for a recipe combination. Keep an eye on your terminal since it is possible that you need to give some input!
+"""
 
 # ╔═╡ c51f2b76-fe4c-4c29-87dc-c7784e5200c2
 md"""
@@ -215,7 +262,7 @@ end
 
 # ╔═╡ cd5458a5-2136-4559-b4e5-2d91abea870c
 if downloadDB
-	scrapeRecipe(106541,106641,"../data/BelgianRecipeDB.csv")
+	scrapeRecipe(parse(Int64,startNumber), parse(Int64,endNumber), filePath)
 end
 
 # ╔═╡ 87b72838-260f-4ffb-ac79-03860165afa1
@@ -273,20 +320,8 @@ that position in the vector is a 1. If not it is a 0. The last index of the vect
 end
 
 # ╔═╡ 3ed830c9-e3f7-4632-9ff3-cdd48c00f315
-function RandomCombo(fridgeList, recipeDict, numRecipes)
-"""
-    randomCombo(fridgeList, recipeDict, numRecipes)
+function randomCombo(fridgeList, recipeDict, numRecipes)
 
-This function gives a random combination of recipes from the provided recipe dictionary.
-
-## Input:
-- fridgeList: A list containing the different foods in your fridge as a string.
-- recipeDict: A dictionary in which the keys are the recipe names and the responding values are a list of the needed ingredients.
-- numRecipes: The max amount of recipes that a combo should contain.
-
-## Output:
-- randCombo: A dictionary containing a random combination of recipes.
-"""
     randCombo = Dict()
     ingredientsArray = []
     namesArray = []
@@ -318,66 +353,6 @@ This function gives a random combination of recipes from the provided recipe dic
     return randCombo
 end
 
-# ╔═╡ 7365d57b-fd33-46af-9dcd-2c07908f64a3
-function removeRecipe(curSolution, fridgeList, recipeDict, numRecipes, tabuList, randRecipe)
-"""
-    removeRecipe(curSolution, fridgeList, recipeDict, numRecipes, tabuList, randRecipe)
-
-This is a function that looks for a neighbour of the current solution. This function is used in the simulated annealing algorithm.
-It also uses a tabulist to stimulate the use of new solutions.
-
-## Input:
-- curSolution: The current best combination of recipes, given as a dictionary in which the keys are the recipe names and the responding values are a list of the needed ingredients.
-- fridgeList: A list containing the different foods in your fridge as a string.
-- recipeDict: A dictionary in which the keys are the recipe names and the responding values are a list of the needed ingredients.
-- numRecipes: The max amount of recipes that a combo should contain.
-- tabuList: A list of recipes that should not be used in the found neighbour.
-- randRecipe: A Boolean `true` or `false` value. When `true`, random recipes are used for the neighbour.
-
-## Output:
-- neighbour: A dictionary containing a combination of recipes.
-
-"""
-    toRemove = rand(curSolution)[1]
-    # adapt the fridgeList so that only ingredients from the removed ingredient are available
-    tempFridgeList = copy(fridgeList)
-    for recipe in keys(curSolution)
-        if recipe != toRemove
-            tempFridgeList = [i for i in fridgeList if !in(i,recipeDict[recipe])]
-        end
-    end
-
-    # adapt the recipeDict and use greedy search to find a new solution
-    tempRecipeDict = copy(recipeDict)
-    for recipe in keys(curSolution)
-        delete!(tempRecipeDict,recipe)
-    end
-
-    for recipe in tabuList
-        try delete!(tempRecipeDict,recipe)
-        catch e
-        end
-    end
-
-    if randRecipe
-        neighbour = RandomCombo(tempFridgeList, tempRecipeDict, numRecipes)
-    else
-        neighbour = GreedyFindCombo(tempFridgeList, tempRecipeDict, numRecipes)
-    end
-
-    # correct recipe vectors
-    for recipe in keys(neighbour)
-        neighbour[recipe] = recipeToNumVector(fridgeList,recipeDict[recipe])
-    end
-
-    # here combine the two dictionaries
-    tempCurSolution = copy(curSolution)
-    delete!(tempCurSolution,toRemove)
-    neighbour = merge(neighbour,tempCurSolution)
-
-    return neighbour
-end
-
 # ╔═╡ a6e77624-606a-49ea-941d-8180cbd94a27
 compatible(x) = !any(sum(x)[1:end-1] .>= 2) # checks if two recipes use a same ingredient
 
@@ -394,23 +369,6 @@ end
 
 # ╔═╡ ace6ecfa-319b-48f3-a675-51b4bc26abd0
 function greedyFindCombo(fridgeList, recipeDict, numRecipes)
-"""
-    greedyFindCombo(fridgeList, recipeDict, numRecipes)
-
-This function uses greedy search to find a good combination of recipes that match your fridge content.
-It ranks all recipes based on the following formula
-
-``score = (ingredients from fridge used) + 6*(ingredients in fridge remaining) + 2*(extra ingredients needed)``
-
-## Input:
-- fridgeList: A list containing the different foods in your fridge as a string.
-- recipeDict: A dictionary in which the keys are the recipe names and the responding values are a list of the needed ingredients.
-- numRecipes: The max amount of recipes that a combo should contain.
-
-## Output:
-- bestCombo: A dictionary containing the best found combination of recipes.
-
-"""
 
     bestCombo = Dict()
     ingredientsArray = []
@@ -446,45 +404,62 @@ It ranks all recipes based on the following formula
     return bestCombo
 end
 
+# ╔═╡ 7365d57b-fd33-46af-9dcd-2c07908f64a3
+function Neighbour(curSolution, fridgeList, recipeDict, numRecipes, tabuList, randRecipe)
+
+    toRemove = rand(curSolution)[1]
+    # adapt the fridgeList so that only ingredients from the removed ingredient are available
+    tempFridgeList = copy(fridgeList)
+    for recipe in keys(curSolution)
+        if recipe != toRemove
+            tempFridgeList = [i for i in fridgeList if !in(i,recipeDict[recipe])]
+        end
+    end
+
+    # adapt the recipeDict and use greedy search to find a new solution
+    tempRecipeDict = copy(recipeDict)
+    for recipe in keys(curSolution)
+        delete!(tempRecipeDict,recipe)
+    end
+
+    for recipe in tabuList
+        try delete!(tempRecipeDict,recipe)
+        catch e
+        end
+    end
+
+    if randRecipe
+        neighbour = randomCombo(tempFridgeList, tempRecipeDict, numRecipes)
+    else
+        neighbour = greedyFindCombo(tempFridgeList, tempRecipeDict, numRecipes)
+    end
+
+    # correct recipe vectors
+    for recipe in keys(neighbour)
+        neighbour[recipe] = recipeToNumVector(fridgeList,recipeDict[recipe])
+    end
+
+    # here combine the two dictionaries
+    tempCurSolution = copy(curSolution)
+    delete!(tempCurSolution,toRemove)
+    neighbour = merge(neighbour,tempCurSolution)
+
+    return neighbour
+end
+
 # ╔═╡ 6f1d6e44-30a1-42ee-b888-4cbb105b5348
-function SAFindCombo(curSolution,  fridgeList, recipeDict, numRecipes, randRecipe;
+function SAFindCombo(initSolution,  fridgeList, recipeDict, numRecipes, randRecipe;
     kT=100, # repetitions per temperature
     r=0.75, # cooling rate
     Tmax=4, # maximal temperature to start
     Tmin=1, # minimal temperature to end
     tabuLength=3) # number of cycli that recipe needs to be blocked
-
-"""
-    SAFindCombo(curSolution,  fridgeList, recipeDict, numRecipes, randRecipe; kT=100, r=0.75, Tmax=4, Tmin=1, tabuLength=3)
-
-This function uses simulated annealing to find a better combination of recipes that match your fridge content.
-It starts with the current solution and tries to improve this.
-
-## Input:
-- curSolution: The current best combination of recipes, given as a dictionary in which the keys are the recipe names and the responding values are a list of the needed ingredients.
-- fridgeList: A list containing the different foods in your fridge as a string.
-- recipeDict: A dictionary in which the keys are the recipe names and the responding values are a list of the needed ingredients.
-- numRecipes: The max amount of recipes that a combo should contain.
-- tabuList: A list of recipes that should not be used in the found neighbour.
-- randRecipe: A Boolean `true` or `false` value. When `true`, random recipes are used for the neighbour.
-
-## Optional Inputs:
-- kT: repetitions per temperature
-- r: cooling rate 
-- Tmax: maximal temperature to start
-- Tmin: minimal temperature to end
-- tabuLength: Number of cycli that recipe needs to be blocked
-
-## Output:
-- solution: A dictionary containing the best found combination of recipes.
-
-"""
     
     @assert 0 < Tmin < Tmax "Temperatures should be positive"
 	@assert 0 < r < 1 "cooling rate is between 0 and 1"
-	solution = curSolution
+	solution = initSolution
 	obj = fridgeObjective([i for i in values(solution)])
-    tabuList = String[i for i in keys(curSolution)] 
+    tabuList = String[i for i in keys(initSolution)] 
 
 	# current temperature
 	T = Tmax
@@ -492,7 +467,7 @@ It starts with the current solution and tries to improve this.
         print("T = $T \n")
 		# repeat kT times
 		for i in 1:kT
-			sn = removeRecipe(solution, fridgeList, recipeDict, numRecipes, tabuList, randRecipe)  # random neighbor
+			sn = Neighbour(solution, fridgeList, recipeDict, numRecipes, tabuList, randRecipe)  # random neighbor
 			obj_sn = fridgeObjective([i for i in values(sn)])
 			# if the neighbor improves the solution, keep it
 			# otherwise accept with a probability determined by the
@@ -513,7 +488,6 @@ It starts with the current solution and tries to improve this.
                 end
             end
 		end
-		#track!(tracker, f, s) # not yet implemented, maybe later
 
 		# decay temperature
 		T *= r
@@ -524,24 +498,6 @@ end
 
 # ╔═╡ 9bfc9f3d-bc05-4c15-8b4c-2cfce3507afc
 function findBestRecipe(fridgeList, dataPath; numRecipes=3, randRecipe=false)
-"""
-    findBestRecipe(fridgeList, csvPath; numRecipes=3, randRecipe=false)
-
-This function combines all other functions. This function checks if your ingredients are in the database, 
-if not it offers possible alternatives. Next it uses simulated annealing to find a better recipe combination.
-
-## Input:
-- fridgeList: A list containing the different foods in your fridge as a string.
-- dataPath: A relative or absolute path to a .csv or .jld2 file containing the recipe database.
-
-## Optional Inputs:
-- numRecipes: The max amount of recipes that a combo should contain.
-- randRecipe: A Boolean `true` or `false` value. When `true`, random recipes are used to find the neighbour in simulated annealing.
-
-## Output:
-- SASolution: A dictionary containing the best found combination of recipes.
-
-"""
 
     # load the recipe dictionary from the db file
     recipeDict = dataPath[end-3:end] == ".csv" ? loadRecipeDBCSV(dataPath) : load(dataPath)
@@ -549,11 +505,11 @@ if not it offers possible alternatives. Next it uses simulated annealing to find
     # create a list of all ingredients in your database
     ingredientList = createIngredientDatabase(recipeDict)
 
-    # check for every food in your fridge if it's in the database. If not check if their are alternatives.
+    # check for every food in your fridge if it's in the database. If not check if there are alternatives.
     fridgeList = checkIngredients(fridgeList, ingredientList)
 
     # find the best greedy recipe
-    greedySolution = GreedyFindCombo(fridgeList, recipeDict, numRecipes)
+    greedySolution = greedyFindCombo(fridgeList, recipeDict, numRecipes)
     print("greedySolution = $greedySolution\n")
 
     # find the best recipe with SA
@@ -567,6 +523,9 @@ if not it offers possible alternatives. Next it uses simulated annealing to find
 
     return SASolution
 end
+
+# ╔═╡ 3569550e-0157-4d7a-8cda-4df327c92b81
+findBestRecipe(fridgeList, filePath)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -975,21 +934,26 @@ uuid = "3f19e933-33d8-53b3-aaab-bd5110c3b7a0"
 # ╠═8e58f807-1db9-495e-8679-430f953292ea
 # ╟─264b1eb5-c421-4a69-a55c-8fbbbb7715d1
 # ╟─c793a149-2cbe-462a-b69a-6ecab53320a6
-# ╟─52c497d7-36b9-4017-934a-1ea6190cbbb5
 # ╠═644c2809-5b2b-4426-8deb-f952372a8438
 # ╟─1752889a-513a-4620-add4-a9ca7fa92c8e
 # ╟─a65c0925-7a67-4da3-9a6d-2ade8d3529e9
 # ╠═ace6ecfa-319b-48f3-a675-51b4bc26abd0
 # ╟─954fe2b3-171b-43ad-a1df-cbb3414988de
 # ╠═6f1d6e44-30a1-42ee-b888-4cbb105b5348
+# ╟─eee53924-fd20-44d8-a3eb-a2af9f9112b9
 # ╟─7315f676-0d0e-43ae-8231-b6274dc5c8de
 # ╠═3ed830c9-e3f7-4632-9ff3-cdd48c00f315
+# ╟─134a2dd7-69d2-449e-82ab-5bfff90ede1b
 # ╠═7365d57b-fd33-46af-9dcd-2c07908f64a3
 # ╟─b6205bd3-41da-45e0-81f1-a480a3f0e737
 # ╠═9bfc9f3d-bc05-4c15-8b4c-2cfce3507afc
 # ╟─6af2a6dd-ba7e-470e-8915-12ae6eff8357
-# ╟─2f8fdff5-0d3f-4167-b415-e7f5f85e006b
+# ╟─656f211d-d1e8-4325-a12b-b89eca0351da
 # ╠═cd5458a5-2136-4559-b4e5-2d91abea870c
+# ╟─bf2725c1-55e6-4c6a-9b83-53f5984cae75
+# ╠═fd02d76a-0ae6-4869-96bb-516c536fb91d
+# ╟─34544e10-e4a1-4cfe-b0bc-43f8927bb19c
+# ╠═3569550e-0157-4d7a-8cda-4df327c92b81
 # ╟─c51f2b76-fe4c-4c29-87dc-c7784e5200c2
 # ╟─09d6393c-9b14-4401-babe-708a88ef0a16
 # ╟─87b72838-260f-4ffb-ac79-03860165afa1
