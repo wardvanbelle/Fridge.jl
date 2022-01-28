@@ -25,7 +25,7 @@ by *Ward Van Belle*
 end
 
 # ╔═╡ 06db3cc2-1680-49b9-a054-281a6b35205a
-md"""$(LocalResource("../FridgeLogo.png", :width => 150, :align => "right"))
+md"""$(Resource("https://github.com/wardvanbelle/Fridge.jl/raw/master/FridgeLogo.png", :width => 150, :align => "right"))
 
 A package that optimizes your fridge use while reducing your waste pile!!
 
